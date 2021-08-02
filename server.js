@@ -31,7 +31,6 @@ function getIiemsFromAPI(req, res) {
       console.log("ERROR GETTING DATA FROM MONGO DATABASE");
     } else {
       if (data.length !== 0) {
-        console.log("DATA: ", data);
         res.send(data);
       } else {
         axios
@@ -142,7 +141,7 @@ function deleteFavoraites(req, res) {
 }
 
 // http://localhost:3008/updatemovie?email=kztahat96@gmail.com&newdata=object
-server.post("/updatemovie/:id", updateMovie);
+server.put("/updatemovie/:id", updateMovie);
 function updateMovie(req, res) {
   const {
     movieName,
@@ -153,13 +152,27 @@ function updateMovie(req, res) {
     email,
   } = req.body;
   const { id } = req.params;
-  console.log("ID from front", id);
-  
+  console.log('vote_average: ', vote_average);
+
   utilities.favMovies.findOne({ email: email }, (error, updatedData) => {
-    const newData = updatedData.itemData.map((element, index) => {
-      if (index == id) {
-      }
-    });
+    if (error) {
+      console.log("ERROR FINDING DATA LINE 158");
+    } else {
+      let newData = updatedData.itemData.map((element, index) => {
+        if (index == id) {
+          element.original_title = movieName;
+          element.overview = overview;
+          element.poster_path = poster_path;
+          element.vote_average = vote_average;
+          element.release_date = release_date;
+        }
+        return element;
+      });
+      console.log("NEW DATA :", newData);
+      updatedData.itemData = newData;
+      updatedData.save();
+      res.send(newData);
+    }
   });
 }
 
